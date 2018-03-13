@@ -109,7 +109,66 @@
 （3）算法分析：时间复杂度O(N*logN),但是不经常被用于内部排序，主要是因为合并两个已排序的表需要线性附加内存开销，并且会拷回来再考回去附加时间开销。
 （主要问题：内存开销大），但 是外部排序的基础。
 
-4.快速排序（Quicksort）（内部排序最常用方法）
+4.快速排序（Quicksort）（内部排序最常用方法：分治策略）
+（1）算法思路：按照一定策略（三数中值法）选取一个枢纽元pivot，然后将其移到数组最后，大于枢纽元的元素放到数组右边，小于枢纽元的放在左边，然后依次递归进行快速排序。
+（2）算法实现：
+【1】选取枢纽元（三数中值分割法）
+              //选取枢纽元---三数中值分割法
+              int media3(int A[], int left, int right)
+              {
+                  int mid = (left + right) / 2;
+
+                  if(A[left] > A[mid])
+                      Swap(&A[left], &A[mid]);
+                  if(A[left] > A[right])
+                      Swap(&A[left], &A[right]);
+                  if(A[mid] > A[right])
+                      Swap(&A[mid], &A[right]);
+
+                  Swap(&A[mid], &A[right - 1]);//将中值放到倒数第二位置上
+                  return A[right - 1];
+              }//算法结束后，数组布局为|三数最小值|...|三数中值|三数最大值|
+
+【2】分割与递归调用
+                //分割并递归调用
+                void QSort(int A[], int left, int right)//left right充当界
+                {
+                    int i, j;
+                    int pivot;
+
+                    if(left + 3 <= right)//三数中值法的递归边界
+                    {
+                        pivot = media3(A, left, right);
+                        i = left; j = right - 1;
+
+                        //快排快的地方
+                        while(1)
+                        {
+                            while(A[++i] < pivot) {}
+                            while(A[--j] > pivot) {}
+
+                            if(i < j)
+                                Swap(&A[i], &A[j]);
+                            else
+                                break;
+                        }
+
+                        Swap(&A[i], &A[right - 1]);//将中值换到正确位置
+
+                        QSort(A, left, i - 1);
+                        QSort(A, i + 1, right);
+                    }
+                    else
+                        InsertSort(A + left, right - left + 1);
+                }
+
+                //算法入口
+                void Quicksort(int A[], int N)
+                {
+                    QSort(A, 0, N - 1);
+                }
+（3）算法分析:时间复杂度O(N * log N)
+
 
 
 

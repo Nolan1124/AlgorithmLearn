@@ -22,3 +22,95 @@
 （4）算法特点:最坏情况下（逆序输入）时间复杂度为O（N^2），最好情况下（已经排好序）时间复杂度O(N)，分析平均情形的行为，实际也是O（N^2）。
 
 2.希尔排序（Shellsort）
+
+
+
+
+3.归并排序（Mergesort）
+（1）基本思想：将数据分成两部分，递归的将前半部分与后半部分分别进行归并排序，然后合并两个已排序的部分 =》 归并（分治策略）
+（2）算法实现（递归方法）：MSort（递归调用） + Merge + Mergesort（调用MSort）
+                #include <stdio.h>
+                #include <stdlib.h>
+
+                //合并两个已排序表的具体实现
+                void Merge(int A[], int TmpArray[], int Lpos, int Rpos, int RightEnd)
+                {
+                    int LeftEnd, TmpPos, i, count;
+
+                    LeftEnd = Rpos - 1;
+                    TmpPos = Lpos;//使数组A和临时数组对齐
+                    count = RightEnd - Lpos + 1;
+
+                    while(Lpos <= LeftEnd && Rpos <= RightEnd)
+                    {
+                        if(A[Lpos] <= A[Rpos])
+                            TmpArray[TmpPos++] = A[Lpos++];
+                        else
+                            TmpArray[TmpPos++] = A[Rpos++];
+                    }
+
+                    while(Lpos <= LeftEnd)
+                        TmpArray[TmpPos++] = A[Lpos++];
+
+                    while(Rpos <= RightEnd)
+                        TmpArray[TmpPos++] = A[Rpos++];
+
+                    //逆向将排好序的数据拷回A数组
+                    for(i = 0; i < count; i++, RightEnd--)
+                        A[RightEnd] = TmpArray[RightEnd];
+                }
+
+                //递归调用主体（分治策略）
+                void MSort(int A[], int TmpArray[], int left, int right)
+                {
+                    int mid;
+                    if(left < right)
+                    {
+                        mid = (left + right) / 2;
+                        MSort(A, TmpArray, left, mid);
+                        MSort(A, TmpArray, mid + 1, right);
+                        Merge(A, TmpArray, left, mid + 1, right);
+                    }
+                }
+
+                //算法入口
+                void Mergesort(int A[], int N)
+                {
+                    int *TmpArray;
+                    TmpArray = malloc(N * sizeof(int));
+
+                    if(TmpArray != NULL)
+                    {
+                        MSort(A, TmpArray, 0, N - 1);
+                        free(TmpArray);
+                    }
+                    else
+                    {
+                        printf("TmpArray 申请失败.\n");
+                    }
+
+                }
+
+                //测试主体
+                int main()
+                {
+                    int i, N = 0;
+                    int A[10] = {20, 19, 18, 17, 16, 15, 13, 12, 11, 14};
+                    N = 10;
+                    Mergesort(A, 10);
+
+                    for(i = 0; i < N; i++)
+                    {
+                        printf("%d ", A[i]);
+                    }
+                    printf("\n");
+                    return 0;
+                }
+
+
+4.快速排序（Quicksort）
+
+
+
+
+

@@ -1,0 +1,129 @@
+网络基础概念
+
+一、网络OSI模型
+1.OSI模型：
+物理层：数据传送（bit传送）、网络硬件标准
+数据连接层：封装frame讯框
+网络层：IP 和route
+传送层：发送端与接收端联机技术（TCP技术）以及封包  =》 网络层 + 传送层 =》 TCP/IP协议
+会话层：负责网络服务建立联机的确认，如：三次握手
+表现层：数据格式转换，包括加密和解密
+应用层：程序有关
+
+2.七层协议的相关性（数据传送过程=》想象成袋子套袋子的模式）
+浏览器数据请求=》封装到TCP袋子中（用户数据）=》TCP袋子封装到IP袋子中（源地址与目的地址封装）=》IP袋子封装到MAC袋子中（物理地址|网卡号）----数据传送（包装）
+接收用户层层解开袋子，取得数据----数据接收（拆袋）
+3.TCP/IP传输：IP确定地址、TCP（UDP、ICMP）进行数据传送
+
+二、ip & MAC
+1. MAC：物理地址-》 与网卡的卡号相对应（mac不能跨路由）
+2. ip（网络层） 到 MAC【 Media Access Control （媒体存取控制）】（数据连接层）的映射：ARP【地址解析协议】协议=》 arp -n（arp table）
+3.查看linux网络配置信息=》 eth0（代表网卡的卡号，MAC：ifconfig eth0）
+4.网络传输过程：
+（1）硬件部分：基于网卡卡号的mac讯框（frame） + 监听技术（CSMA\cd）
+（2）软件部分：TCP/ip协议
+5.IP:数据封包格式（网络层）
+6.网域：同一个网域当中的定义是『在同一个物理网段内，主机的 IP 具有相同的 Net_ID ，
+并且具有独特的 Host_ID』，那么这些 IP 群就是同一个网域内的 IP 网段
+
+192.168.0.0~192.168.0.255 这个 C Class 的说明： 
+11000000.10101000.00000000.00000000 
+11000000.10101000.00000000.11111111 
+|----------Net_ID---------|-host--|
+         （网域号）         （主机号1-254可用）
+7.IP分级
+以二进制说明 Network 第一个数字的定义： 
+A Class : 0xxxxxxx.xxxxxxxx.xxxxxxxx.xxxxxxxx  ==> NetI_D 的开头是 0 
+          |--net--|---------host------------| 
+B Class : 10xxxxxx.xxxxxxxx.xxxxxxxx.xxxxxxxx  ==> NetI_D 的开头是 10 
+          |------net-------|------host------| 
+C Class : 110xxxxx.xxxxxxxx.xxxxxxxx.xxxxxxxx  ==> NetI_D 的开头是 110 
+          |-----------net-----------|-host--|  
+三种分级在十进制的表示： 
+A Class :   0.xx.xx.xx ~ 126.xx.xx.xx 
+B Class : 128.xx.xx.xx ~ 191.xx.xx.xx 
+C Class : 192.xx.xx.xx ~ 223.xx.xx.xx
+
+8. netmask（子网掩码：对host-id进行进一步切分，形成不同的子网）：基于host-id是可变的，net-id是不可变的
+net-id不可变=》全部为1，被填充；host-id可变=》全部为0，被保留=》netmask：255.255.255.0（c）
+
+Class A, B, C 三个等级的 Netmask 表示方式： 
+A Class : 11111111.00000000.00000000.00000000 ==> 255.  0.  0.  0 
+B Class : 11111111.11111111.00000000.00000000 ==> 255.255.  0.  0 
+C Class : 11111111.11111111.11111111.00000000 ==> 255.255.255.  0
+
+Netmask:   255.255.255.0   <==网域定义中，最重要的参数 
+Network:   192.168.0.0     <==第一个 IP 
+Broadcast: 192.168.0.255   <==最后一个 IP 
+可用以设定成为主机的 IP 数： 
+192.168.0.1 ~ 192.168.0.254
+
+通过network与netmask就可以确定一个网域：
+Network/Netmask 
+192.168.0.0/255.255.255.0 
+192.168.0.0/24    <==因为 Net_ID 共有 24 个 bits
+
+9.public IP & private IP：解决IP不足的问题
+10.ip封包格式：表头主要包括TTL（存活时间）、协议、源IP与目的IP等
+三、网络路由
+1.不在同一个网段内的IP互相通信=》必须经过路由
+2.Gateway/route：网关/路由：负责不同网域之间的封包传递
+3.linux命令：查看本机路由：route -n
+nolan@ubuntu:~$ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         192.168.113.2   0.0.0.0         UG    100    0        0 ens33
+169.254.0.0     0.0.0.0         255.255.0.0     U     1000   0        0 ens33
+192.168.113.0   0.0.0.0         255.255.255.0   U     100    0        0 ens33
+
+说明:
+# Destination ：其实就是 Network 的意思； 
+# Gateway     ：就是该接口的 Gateway 那个 IP 啦！若为 0.0.0.0 表示不需要额外的 IP； 
+# Genmask     ：就是 Netmask 啦！与 Destination 组合成为一部主机或网域； 
+# Flags       ：共有多个旗标可以来表示该网域或主机代表的意义： 
+#               U：代表该路由可用； 
+#               G：代表该网域需要经由 Gateway 来帮忙转递； 
+#               H：代表该行路由为一部主机，而非一整个网域； 
+# Iface       ：就是 Interface (接口) 的意思。 
+4.IP网络层功能：提供路由的判断以确定封包的传送路径（pc 01 -》 server A -》 pc 11）
+四、通讯协议： 传送层：设置传送端口（port）
+1.TCP（transmission control protocol：传输控制协议）
+（1）TCP封包格式以及状态条件：
+  ACK响应封包   、   SYN：建立同步连接  、  FIN：数据传送结束
+  TCP三次握手协议确保数据传送成功。
+  TCP无法感知网络中断
+2.UDP
+3.ICMP
+4.封包示意图：
+|mac表头|IP表头|TCP表头|实际数据|
+              |TCP长度         |示意图
+5.主机通信连接示意图
+IP1：port1  --->   IP2:port2（构成一条完整通路）
+6.socket pair（套接字：成对的端口）主要包括一下信息：
+ • 来源 IP ( Source Address ) 
+ • 目的 IP ( Destination Address ) 
+ • 来源端口 ( Source Port )  
+ • 目的端口 ( Destination Port )  
+7.防火墙原理：
+对封包表头进行分析，如特定IP、特定端口或者是特定封包信息，如果不在防火墙设定的规则内，则拦截。
+8.DNS（domain name system）域名映射：域名  --> IP地址
+通用DNS主机： 168.95.1.1 
+
+9.网络连接信息：• IP  • Netmask  • Network  • Broadcast  • Gateway  • DNS
+
+五、linux防火墙
+1.概念：分析与过滤进出我们管理之网域的封包数据的机制（如iptables）
+2.作用：
+• 切割被信任(如子网域)与不被信任(如 Internet)的网段； 
+• 划分出可提供 Internet 的服务与必须受保护的服务； 
+• 分析出可接受与不可接受的封包状态； （对数据封包的取得方式分类）
+3.linux防火墙：IPtable（基于封包过滤原理【ip filter】）
+（1）iptables规则是有序的
+（2）iptables组成：三个表：filter（本机相关）、nat（服务器相关）、mongle（不常用）
+（3）本机iptables语法：
+[root@linux ~]# iptables [-t tables] [-L] [-nv] 
+参数： 
+-t ：后面接 table ，例如 nat 或 filter ，若省略此项目，则使用预设的 filter 
+-L ：列出目前的 table 的规则 
+-n ：不进行 IP 与 HOSTNAME 的反查，显示讯息的速度会快很多！ 
+-v ：列出更多的信息，包括通过该规则的封包总位数、相关的网络接口等 
